@@ -26,12 +26,36 @@ class Chat extends Component {
         messages,
       });
     }, 1000);
+
+    setInterval(() => {
+      this.checkReply();
+    }, 1000);
   }
 
-  sendMessage = (text) => {
+  checkReply = () => {
+    const { messages } = this.state;
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage.role === ROLE.CUSTOMER) {
+      const res = answersData.find((answer) => {
+        return answer.tags.find((tag) => lastMessage.text.includes(tag));
+      });
+      if (res == null) return;
+      this.sendByRobot(res.text);
+    }
+  };
+
+  sendByCustomer = (text) => {
+    this.sendMessage(text, ROLE.CUSTOMER);
+  };
+
+  sendByRobot = (text) => {
+    this.sendMessage(text, ROLE.ROBOT);
+  };
+
+  sendMessage = (text, role) => {
     const message = {
       text,
-      role: ROLE.CUSTOMER,
+      role,
     };
     this.setState((prev) => ({ messages: prev.messages.concat(message) }));
   };
@@ -42,7 +66,7 @@ class Chat extends Component {
       <main className="Chat">
         <ChatHeader shop={shop} />
         <ChatBox messages={messages} />
-        <ChatInput sendMessage={this.sendMessage} />
+        <ChatInput sendMessage={this.sendByCustomer} />
       </main>
     );
   }
